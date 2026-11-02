@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>tika</title>
+<style>
+:root{color-scheme:light;--bg:#F6F3EC;--card:#FFFDF8;--ink:#23201B;--mute:#7C766A;--line:#E8E2D5;--acc:#FF4D6A;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);background:var(--bg)}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#171512;--card:#211F1B;--ink:#F3EFE6;--mute:#A39D90;--line:#34312B}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);max-width:560px;margin:0 auto}
+button{font:inherit;color:inherit;cursor:pointer}
+#app{height:100%;display:flex;flex-direction:column}
+.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:24px;letter-spacing:-.03em}header .ib:last-child{justify-self:end}
+.ib{width:42px;height:42px;border-radius:50%;border:2px solid var(--line);background:var(--card);display:grid;place-items:center}
+.ib.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+main{flex:1;overflow-y:auto}main.reels{scroll-snap-type:y mandatory;background:#0D0D0D}
+nav{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);margin:0 12px 10px;border-radius:28px;box-shadow:0 4px 22px rgba(60,48,30,.12)}
+nav button{border:0;background:none;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;font-size:12px;font-weight:600;color:var(--mute)}
+nav button[aria-current="true"]{color:var(--acc)}
+.post{padding:14px 16px;border-bottom:1px solid var(--line)}
+.who{display:flex;align-items:center;gap:8px;margin-bottom:8px}.who small{margin-left:auto;color:var(--mute)}.u{color:var(--mute)}
+.av{width:38px;height:38px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:800;object-fit:cover;flex:none}
+.av.big{width:84px;height:84px;font-size:34px}
+.post p{margin:0 0 10px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ph{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:16px;margin-bottom:10px}
+.ph.v{aspect-ratio:9/16;max-height:70vh;width:auto;margin:0 auto 10px;background:#000}
+.acts{display:flex;gap:18px}.acts button{border:0;background:none;display:flex;gap:5px;align-items:center;color:var(--mute);font-weight:600}
+.acts .on{color:var(--acc)}.acts .on .i{fill:currentColor;fill-opacity:.2}
+.vid{height:100%;scroll-snap-align:start;position:relative;background:#000}.vid video{width:100%;height:100%;object-fit:cover}
+.vcap{position:absolute;left:14px;right:80px;bottom:16px;color:#fff;text-shadow:0 1px 6px #000}.vcap p{margin:2px 0 0}
+.vside{position:absolute;right:10px;bottom:20px;display:flex;flex-direction:column;gap:12px}.vside button{border:0;background:rgba(0,0,0,.4);color:#fff;border-radius:50%;width:48px;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px}
+.vside .on{color:var(--acc)}
+input,textarea{font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:10px 12px;width:100%}
+textarea{min-height:100px}
+.btn{border:0;background:var(--acc);color:#fff;font-weight:800;border-radius:14px;padding:11px 18px}.btn.ghost{background:var(--bg);color:var(--ink);border:2px solid var(--line)}
+.lnk{border:0;background:none;color:var(--mute);text-decoration:underline}
+.auth{padding:40px 22px;display:grid;gap:10px;align-content:start}.auth h1{font-size:40px;margin:0 0 8px;text-align:center;letter-spacing:-.04em}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}.seg button{border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:8px;font-weight:600}.seg .on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.er{color:var(--acc);margin:0;min-height:1.2em;font-weight:600}.er.ok{color:#2E9E5B}
+.empty{padding:48px 28px;text-align:center;color:var(--mute)}.empty b{display:block;color:var(--ink);font-size:18px}
+.pfh{display:flex;align-items:center;gap:16px;padding:18px 16px 6px}.stats{display:flex;flex:1;justify-content:space-around;text-align:center}.stats b{display:block;font-size:20px}.stats small{color:var(--mute)}
+.pfb{padding:4px 16px 12px;display:grid;gap:6px}.pfb h2{margin:0}.pfb div{display:flex;gap:8px}
+.sheet{position:fixed;inset:0;background:rgba(35,32,27,.4);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.panel{background:var(--card);width:100%;max-width:560px;border-radius:24px 24px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));max-height:90%;overflow:auto;display:grid;gap:10px;animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.ph-h{display:flex;justify-content:space-between;align-items:center}.srow{display:flex;justify-content:space-between;align-items:center;gap:12px}.srow small{display:block;color:var(--mute)}
+.sw{width:48px;height:28px;border-radius:99px;border:0;background:var(--line);position:relative}.sw:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .15s}.sw.on{background:var(--acc)}.sw.on:after{transform:translateX(20px)}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:20px;font-weight:600;z-index:30;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%;text-align:center}#toast.on{opacity:1}
+.wb{border:0;background:none;display:flex;align-items:center;gap:8px;padding:0;text-align:left}.tg{border:0;background:none;color:var(--acc);padding:0;font:inherit}.sb{padding:10px 14px}.row{display:flex;align-items:center;gap:10px;border:0;background:none;width:100%;padding:8px 14px;text-align:left}.seg.pt{grid-template-columns:repeat(3,1fr);padding:0 16px 10px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div><div id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const sb=supabase.createClient("https://dwtscjuueknglaxwkvqb.supabase.co","sb_publishable_9rNKRbcBWuhxsql7BXNlxg_CnGBqqpN");
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const P={plus:'<path d="M12 5v14M5 12h14"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 7l9 6 9-6"/>',home:'<path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/>',vid:'<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 9l4 3-4 3z"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',l:'<path d="M12 21s-8-5-8-11a4.5 4.5 0 018-3 4.5 4.5 0 018 3c0 6-8 11-8 11z"/>',d:'<path d="M7 14V3H4v11zM7 14l4 7h1.5l-.8-5H19a2 2 0 002-2.3l-1.2-7A2 2 0 0017.8 5H7"/>',c:'<path d="M4 5h16v11H9l-5 4z"/>',r:'<path d="M17 3l4 4-4 4M21 7H8a4 4 0 00-4 4M7 21l-4-4 4-4M3 17h13a4 4 0 004-4"/>',s:'<path d="M6 3h12v18l-6-4-6 4z"/>'};
+const ic=k=>`<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${P[k]}</svg>`;
+let me=null,tab=0,mode="in",cmode="p",io=null,ptab=0;
+const T=m=>{const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(T.h);T.h=setTimeout(()=>t.classList.remove("on"),2800)};
+const er=(m,ok)=>{const e=$("#er");if(e){e.className="er"+(ok?" ok":"");e.textContent=m}};
+const ERR=e=>{const m=(e&&e.message)||"";if(/Invalid login/i.test(m))return"Email o contraseña incorrectos.";if(/already registered/i.test(m))return"Ese email ya tiene una cuenta.";if(/not confirmed/i.test(m))return"Confirma tu email primero (revisa tu correo).";if(/underage/.test(m))return"Debes tener 16 años o más para registrarte.";if(e&&e.code==="23505")return"Ese nombre de usuario ya está en uso.";if(e&&e.code==="23514")return"Usuario inválido: 3 a 20 caracteres, con letras, números, punto, guion o guion bajo.";return m||"Ocurrió un error. Intenta de nuevo."};
+const rel=d=>{const s=(Date.now()-new Date(d))/1e3,f=new Intl.RelativeTimeFormat("es",{numeric:"auto"});if(s<60)return"ahora";if(s<3600)return f.format(-Math.floor(s/60),"minute");if(s<86400)return f.format(-Math.floor(s/3600),"hour");return f.format(-Math.floor(s/86400),"day")};
+const redir=()=>location.origin+location.pathname;
+
+/* ---------- Ingreso y registro ---------- */
+function authView(){$("#app").innerHTML=`<div class="auth"><h1>tika</h1><div class="seg"><button data-m="in" class="${mode==="in"?"on":""}">Ingresar</button><button data-m="up" class="${mode==="up"?"on":""}">Crear cuenta</button></div><input id="em" type="email" placeholder="Email" autocomplete="email"><input id="pw" type="password" placeholder="Contraseña (mínimo 8)" autocomplete="${mode==="in"?"current-password":"new-password"}"><p class="er" id="er"></p><button class="btn" id="go">${mode==="in"?"Ingresar":"Crear cuenta"}</button><button class="btn ghost" id="gg">Continuar con Google</button>${mode==="in"?'<button class="lnk" id="fg">Olvidé mi contraseña</button>':""}</div>`}
+async function doAuth(){const email=$("#em").value.trim(),password=$("#pw").value;if(!email||password.length<8)return er("Escribe tu email y una contraseña de al menos 8 caracteres.");
+  if(mode==="in"){const{error}=await sb.auth.signInWithPassword({email,password});if(error)er(ERR(error));return}
+  const{data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:redir()}});
+  if(error)return er(ERR(error));if(!data.session)er("Te enviamos un correo. Ábrelo, confirma tu email y vuelve a ingresar.",1)}
+async function forgot(){const email=$("#em").value.trim();if(!email)return er("Escribe tu email arriba.");const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:redir()});error?er(ERR(error)):er("Te enviamos un correo para cambiar la contraseña.",1)}
+function recView(){$("#app").innerHTML=`<div class="auth"><h1>tika</h1><b>Elige tu nueva contraseña</b><input id="pw" type="password" placeholder="Nueva contraseña (mínimo 8)"><p class="er" id="er"></p><button class="btn" id="nr">Guardar</button></div>`}
+async function newPass(){const password=$("#pw").value;if(password.length<8)return er("Mínimo 8 caracteres.");const{error}=await sb.auth.updateUser({password});if(error)return er(ERR(error));T("Contraseña cambiada");route()}
+
+/* ---------- Crear perfil (usuario único y edad mínima se validan en el servidor) ---------- */
+function setupView(){$("#app").innerHTML=`<div class="auth"><h1>tika</h1><b>Crea tu perfil</b><input id="sn" maxlength="30" placeholder="Tu nombre"><input id="su" maxlength="20" placeholder="Nombre de usuario" autocapitalize="none"><small id="sa" class="u"></small><label class="u">Fecha de nacimiento (mínimo 16 años)</label><input id="sb" type="date"><p class="er" id="er"></p><button class="btn" id="cs">Crear perfil</button><button class="lnk" id="lo">Cerrar sesión</button></div>`;
+  let h;$("#su").addEventListener("input",()=>{clearTimeout(h);h=setTimeout(async()=>{const u=$("#su").value.trim();if(!u)return $("#sa").textContent="";const{data}=await sb.rpc("username_available",{u});$("#sa").textContent=data?"Disponible":"No disponible o inválido"},350)})}
+async function doSetup(){const n=$("#sn").value.trim(),u=$("#su").value.trim(),b=$("#sb").value;if(!n||!u||!b)return er("Completa todos los campos.");const{error}=await sb.rpc("create_profile",{p_username:u,p_name:n,p_birth:b});if(error)return er(ERR(error));route()}
+
+/* ---------- Estructura principal ---------- */
+async function route(){const{data:{session}}=await sb.auth.getSession();if(!session){me=null;return authView()}
+  const{data,error}=await sb.from("profiles").select("*").eq("id",session.user.id).maybeSingle();if(error)return T(ERR(error));
+  if(!data){me=null;return setupView()}me=data;document.documentElement.dataset.theme=me.theme;shell();show(tab)}
+function shell(){$("#app").innerHTML=`<header><button class="ib pri" id="bc" aria-label="Crear">${ic("plus")}</button><h1>tika</h1><button class="ib" id="bm" aria-label="Mensajes">${ic("mail")}</button></header><main id="mn"></main><nav><button data-t="0">${ic("home")}Inicio</button><button data-t="1">${ic("vid")}Videos</button><button data-t="2">${ic("user")}Perfil</button></nav>`}
+async function show(n){tab=n;document.querySelectorAll("nav button").forEach((b,i)=>b.setAttribute("aria-current",i===n));const m=$("#mn");m.className=n===1?"reels":"";m.innerHTML='<div class="empty">Cargando…</div>';
+  if(n===0)await feed();if(n===1)await reels();if(n===2)await prof()}
+
+/* ---------- Datos ---------- */
+async function fetchPosts(f){const{data,error}=await f(sb.from("posts").select("id,author,kind,body,media_path,thumb_path,created_at,profiles(username,display_name,avatar_path)").order("created_at",{ascending:false}).limit(30));
+  if(error){T(ERR(error));return[]}const ids=data.map(p=>p.id);if(!ids.length)return[];
+  const[c,r,rp,sv]=await Promise.all([sb.from("post_counts").select("*").in("post_id",ids),sb.from("reactions").select("post_id,kind").in("post_id",ids),sb.from("reposts").select("post_id").in("post_id",ids),sb.from("saves").select("post_id").in("post_id",ids)]);const rps=new Set((rp.data||[]).map(x=>x.post_id)),svs=new Set((sv.data||[]).map(x=>x.post_id));
+  const cm=Object.fromEntries((c.data||[]).map(x=>[x.post_id,x])),rm=Object.fromEntries((r.data||[]).map(x=>[x.post_id,x.kind]));
+  const paths=[...new Set(data.flatMap(p=>[p.media_path,p.thumb_path]).filter(Boolean))];
+  const su=paths.length?(await sb.storage.from("media").createSignedUrls(paths,3600)).data||[]:[];const um=Object.fromEntries(su.map(x=>[x.path,x.signedUrl]));
+  return data.map(p=>({...p,c:cm[p.id]||{},mine:rm[p.id],rp:rps.has(p.id),sv:svs.has(p.id),url:um[p.media_path],thumb:um[p.thumb_path]}))}
+const avUrl=p=>sb.storage.from("avatars").getPublicUrl(p).data.publicUrl;
+const AM={like:["l","likes","Me gusta"],dislike:["d","dislikes","No me gusta"],comment:["c","comments","Comentarios"],repost:["r","reposts","Repostear"],save:["s",null,"Guardar"]};
+const act=(p,k)=>{const[i,n,a]=AM[k],on=k==="repost"?p.rp:k==="save"?p.sv:p.mine===k;return `<button data-r="${k}" data-p="${p.id}" class="${on?"on":""}" aria-label="${a}">${ic(i)}${n?Number(p.c[n]||0):""}</button>`};
+const fmt=t=>esc(t).replace(/#(\w{2,30})/g,'<button class="tg" data-s="#$1">#$1</button>').replace(/@([\w.-]{3,20})/g,'<button class="tg" data-un="$1">@$1</button>');
+const list=(l,e)=>l.length?l.map(card).join(""):`<div class="empty">${e}</div>`;
+const head=(u,s)=>`<div class="pfh">${u.avatar_path?`<img class="av big" src="${avUrl(u.avatar_path)}" alt="">`:`<span class="av big">${esc(u.display_name[0])}</span>`}<div class="stats"><div><b>${s.posts||0}</b><small>publicaciones</small></div><div><b>${s.followers||0}</b><small>seguidores</small></div><div><b>${s.following||0}</b><small>seguidos</small></div></div></div>`;
+function card(p){const u=p.profiles||{},av=u.avatar_path?`<img class="av" src="${avUrl(u.avatar_path)}" alt="">`:`<span class="av">${esc((u.display_name||"?")[0])}</span>`;
+  const md=!p.url?"":p.kind==="video"?`<video class="ph v" src="${p.url}" poster="${p.thumb||""}" controls playsinline preload="none"></video>`:`<img class="ph" src="${p.url}" alt="" loading="lazy">`;
+  return `<article class="post"><div class="who"><button class="wb" data-u="${p.author}">${av}<b>${esc(u.display_name)}</b><span class="u">@${esc(u.username)}</span></button><small>${rel(p.created_at)}</small></div>${p.body?`<p>${fmt(p.body)}</p>`:""}${md}<div class="acts">${["like","dislike","comment","repost","save"].map(k=>act(p,k)).join("")}</div></article>`}
+async function feed(){const l=await fetchPosts(q=>q.eq("kind","post"));$("#mn").innerHTML=`<div class="sb"><input id="q" type="search" placeholder="Buscar personas, #hashtags y publicaciones"></div><div id="fd">${list(l,"<b>Todavía no hay publicaciones</b>Toca + para publicar la primera.")}</div>`;let h;$("#q").addEventListener("input",()=>{clearTimeout(h);h=setTimeout(()=>search($("#q").value.trim()),400)})}
+async function search(t){if(!t)return feed();const k=t.replace(/[%,()*]/g,""),n=k.replace(/^[@#]/,"");
+  const[pp,l]=await Promise.all([sb.from("profiles").select("id,username,display_name,avatar_path").or(`username.ilike.%${n}%,display_name.ilike.%${n}%`).limit(8),fetchPosts(q=>q.ilike("body",`%${k}%`))]);
+  $("#fd").innerHTML=`${(pp.data||[]).map(u=>`<button class="row" data-u="${u.id}">${u.avatar_path?`<img class="av" src="${avUrl(u.avatar_path)}" alt="">`:`<span class="av">${esc(u.display_name[0])}</span>`}<span><b>${esc(u.display_name)}</b> <span class="u">@${esc(u.username)}</span></span></button>`).join("")}${list(l,"<b>Sin resultados</b>")}`}
+async function reels(){const l=await fetchPosts(q=>q.eq("kind","video"));const m=$("#mn");
+  if(!l.length){m.className="";m.innerHTML='<div class="empty"><b>Todavía no hay videos</b>Toca + y elige Video para subir el primero.</div>';return}
+  m.innerHTML=l.map(p=>`<section class="vid"><video src="${p.url}" poster="${p.thumb||""}" loop playsinline preload="metadata"></video><div class="vcap"><b>@${esc((p.profiles||{}).username)}</b><p>${esc(p.body)}</p></div><div class="vside">${["like","comment","repost","save"].map(k=>act(p,k)).join("")}</div></section>`).join("");
+  io&&io.disconnect();io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector("video");if(e.isIntersecting)v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})});else v.pause()}),{threshold:.6});m.querySelectorAll(".vid").forEach(e=>io.observe(e))}
+async function myList(){if(!ptab)return fetchPosts(q=>q.eq("author",me.id));const{data}=await sb.from(ptab===1?"saves":"reposts").select("post_id").eq("user_id",me.id),ids=(data||[]).map(x=>x.post_id);return ids.length?fetchPosts(q=>q.in("id",ids)):[]}
+async function prof(){const[st,l,rq]=await Promise.all([sb.from("profile_stats").select("*").eq("profile_id",me.id).maybeSingle(),myList(),sb.from("follows").select("follower",{count:"exact",head:true}).eq("following",me.id).eq("status","pending")]),n=rq.count||0;
+  $("#mn").innerHTML=`${head(me,st.data||{})}<div class="pfb"><h2>${esc(me.display_name)}</h2><span class="u">@${esc(me.username)}${me.is_private?" · cuenta privada":""}</span><p>${fmt(me.bio)}</p><div><button class="btn ghost" id="ep">Editar perfil</button><button class="btn ghost" id="st">Ajustes</button>${n?`<button class="btn" id="rq">Solicitudes (${n})</button>`:""}</div></div><div class="seg pt">${["Publicaciones","Guardados","Reposts"].map((x,i)=>`<button data-pt="${i}" class="${i===ptab?"on":""}">${x}</button>`).join("")}</div>${ptab===1?'<p class="u" style="padding:0 16px">Solo tú ves tus guardados.</p>':""}${list(l,"<b>Nada por aquí</b>")}`}
+async function profView(id){if(id===me.id)return show(2);const m=$("#mn");m.className="";m.innerHTML='<div class="empty">Cargando…</div>';document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current","false"));
+  const[pr,st,fl,l]=await Promise.all([sb.from("profiles").select("*").eq("id",id).maybeSingle(),sb.from("profile_stats").select("*").eq("profile_id",id).maybeSingle(),sb.from("follows").select("status").eq("follower",me.id).eq("following",id).maybeSingle(),fetchPosts(q=>q.eq("author",id))]);
+  const u=pr.data;if(!u){m.innerHTML='<div class="empty"><b>Perfil no encontrado</b></div>';return}const f=fl.data&&fl.data.status,lab=f==="accepted"?"Siguiendo":f==="pending"?"Solicitud enviada":u.is_private?"Solicitar seguir":"Seguir";
+  m.innerHTML=`${head(u,st.data||{})}<div class="pfb"><h2>${esc(u.display_name)}</h2><span class="u">@${esc(u.username)}${u.is_private?" · cuenta privada":""}</span><p>${fmt(u.bio)}</p><div><button class="btn${f?" ghost":""}" data-f="${id}" data-st="${f||""}">${lab}</button><button class="btn ghost" data-bk="1">Volver</button></div></div>${list(l,u.is_private&&f!=="accepted"?"<b>Cuenta privada</b>Sigue a esta persona para ver sus publicaciones.":"<b>Sin publicaciones</b>")}`}
+async function reqSheet(){const{data}=await sb.from("follows").select("follower,profiles!follows_follower_fkey(username,display_name)").eq("following",me.id).eq("status","pending");
+  sheet(`${hd("Solicitudes")}${(data||[]).map(r=>`<div class="srow"><span><b>${esc(r.profiles.display_name)}</b> <span class="u">@${esc(r.profiles.username)}</span></span><span><button class="btn" data-ra="${r.follower}" data-ok="1">Aceptar</button> <button class="btn ghost" data-ra="${r.follower}">Rechazar</button></span></div>`).join("")||'<p class="u">No hay solicitudes.</p>'}`)}
+async function commentSheet(pid){const{data}=await sb.from("comments").select("id,author,body,created_at,profiles(username,display_name)").eq("post_id",pid).order("created_at");
+  sheet(`${hd("Comentarios")}${(data||[]).map(c=>`<div class="srow"><span><b>${esc(c.profiles.display_name)}</b> ${esc(c.body)}<small>${rel(c.created_at)}</small></span>${c.author===me.id?`<button class="lnk" data-dc="${c.id}" data-p="${pid}">Borrar</button>`:""}</div>`).join("")||'<p class="u">Sé el primero en comentar.</p>'}<div class="srow"><input id="ci" maxlength="300" placeholder="Escribe un comentario"><button class="btn" id="cs2" data-p="${pid}">Enviar</button></div><p class="er" id="er"></p>`)}
+async function google(){const{error}=await sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:redir()}});if(error)er(/not enabled|Unsupported/i.test(error.message)?"El ingreso con Google todavía no está activado.":ERR(error))}
+
+/* ---------- Hojas (paneles desde abajo) ---------- */
+function sheet(h){closeSheet();const d=document.createElement("div");d.className="sheet";d.id="sh";d.innerHTML=`<div class="panel">${h}</div>`;d.addEventListener("click",e=>{if(e.target===d)closeSheet()});document.body.appendChild(d)}
+const closeSheet=()=>{const s=$("#sh");if(s)s.remove()};
+const hd=t=>`<div class="ph-h"><b>${t}</b><button class="btn ghost" data-x="1">Cerrar</button></div>`;
+function createSheet(){sheet(`${hd("Crear")}<div class="seg"><button data-c="p" class="${cmode==="p"?"on":""}">Publicación</button><button data-c="v" class="${cmode==="v"?"on":""}">Video</button></div><textarea id="tx" maxlength="500" placeholder="${cmode==="v"?"Descripción del video":"¿Qué quieres compartir?"}"></textarea><input id="fi" type="file" accept="${cmode==="v"?"video/*":"image/*"}"><small class="u">${cmode==="v"?"Vertical, máximo 3 minutos y 50 MB.":"Foto opcional."}</small><p class="er" id="er"></p><button class="btn" id="pub">Publicar</button>`)}
+const up=async(p,b,ct)=>{const{error}=await sb.storage.from("media").upload(p,b,{contentType:ct});if(error)throw error};
+function img(f,max,q){return new Promise((res,rej)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const k=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext("2d").drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?res(b):rej(new Error("No se pudo procesar la imagen")),"image/jpeg",q)};i.onerror=()=>rej(new Error("No se pudo leer la imagen. Usa JPG, PNG o WebP."));i.src=u})}
+function vmeta(f){return new Promise((res,rej)=>{const v=document.createElement("video"),u=URL.createObjectURL(f);v.preload="metadata";v.muted=true;v.playsInline=true;v.onerror=()=>rej(new Error("No se pudo leer el video."));v.onloadedmetadata=()=>{v.currentTime=Math.min(.5,v.duration/2)};
+  v.onseeked=()=>{const k=Math.min(1,320/v.videoWidth),c=document.createElement("canvas");c.width=Math.round(v.videoWidth*k);c.height=Math.round(v.videoHeight*k);c.getContext("2d").drawImage(v,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);res({d:v.duration,w:v.videoWidth,h:v.videoHeight,thumb:b})},"image/jpeg",.8)};v.src=u})}
+async function publish(){const t=$("#tx").value.trim(),f=$("#fi").files[0],b=$("#pub");b.disabled=true;er("Subiendo…",1);
+  try{const base=`${me.id}/${crypto.randomUUID()}`,row={author:me.id,kind:cmode==="v"?"video":"post",body:t};
+    if(cmode==="v"){if(!f)throw new Error("Elige un video.");if(f.size>52428800)throw new Error("El video pesa más de 50 MB.");const m=await vmeta(f);
+      if(!(m.d>0)||!isFinite(m.d))throw new Error("No se pudo leer la duración del video.");if(m.d>180)throw new Error("El video dura más de 3 minutos.");if(m.h<=m.w)throw new Error("El video debe ser vertical.");
+      const ext=(f.name.split(".").pop()||"mp4").toLowerCase();await up(`${base}.${ext}`,f,f.type||"video/mp4");await up(`${base}_t.jpg`,m.thumb,"image/jpeg");
+      Object.assign(row,{media_path:`${base}.${ext}`,thumb_path:`${base}_t.jpg`,duration_s:Math.max(1,Math.ceil(m.d)),width:m.w,height:m.h})}
+    else{if(!t&&!f)throw new Error("Escribe algo o añade una foto.");if(f){await up(`${base}.jpg`,await img(f,1280,.8),"image/jpeg");await up(`${base}_t.jpg`,await img(f,320,.75),"image/jpeg");Object.assign(row,{media_path:`${base}.jpg`,thumb_path:`${base}_t.jpg`})}}
+    const{error}=await sb.from("posts").insert(row);if(error)throw error;closeSheet();show(cmode==="v"?1:0);T("Publicado")}catch(e){er(ERR(e));b.disabled=false}}
+function editSheet(){sheet(`${hd("Editar perfil")}<input id="en" maxlength="30" value="${esc(me.display_name)}" placeholder="Nombre"><input id="eu" maxlength="20" value="${esc(me.username)}" placeholder="Usuario" autocapitalize="none"><textarea id="eb" maxlength="160" placeholder="Biografía">${esc(me.bio)}</textarea><label class="u">Foto de perfil</label><input id="ea" type="file" accept="image/*"><p class="er" id="er"></p><button class="btn" id="sv">Guardar</button>`)}
+async function saveProfile(){const f=$("#ea").files[0];let avatar=me.avatar_path;try{if(f){const path=`${me.id}/avatar.jpg`,{error}=await sb.storage.from("avatars").upload(path,await img(f,400,.85),{contentType:"image/jpeg",upsert:true});if(error)throw error;avatar=path+"?v="+Date.now()}
+  const{error}=await sb.from("profiles").update({display_name:$("#en").value.trim()||me.display_name,username:$("#eu").value.trim(),bio:$("#eb").value.trim(),avatar_path:avatar}).eq("id",me.id);if(error)throw error;
+  me=(await sb.from("profiles").select("*").eq("id",me.id).single()).data;closeSheet();show(2);T("Perfil actualizado")}catch(e){er(ERR(e))}}
+const tg=(k,t,d)=>`<div class="srow"><span><b>${t}</b><small>${d}</small></span><button class="sw ${me[k]?"on":""}" role="switch" aria-checked="${!!me[k]}" aria-label="${t}" data-k="${k}"></button></div>`;
+const setSheet=()=>sheet(`${hd("Ajustes")}${tg("is_private","Cuenta privada","Quien quiera seguirte tendrá que enviar una solicitud.")}${tg("anon_tickets","Tickets anónimos","Quien reciba tu ticket no verá tu nombre.")}<div class="seg"><button data-th="light" class="${me.theme==="light"?"on":""}">Claro</button><button data-th="dark" class="${me.theme==="dark"?"on":""}">Oscuro</button></div><button class="btn ghost" id="lo">Cerrar sesión</button>`);
+async function upd(patch){const{error}=await sb.from("profiles").update(patch).eq("id",me.id);if(error)return T(ERR(error));Object.assign(me,patch);document.documentElement.dataset.theme=me.theme;setSheet()}
+async function react(btn){const pid=btn.dataset.p,k=btn.dataset.r;if(k==="comment")return commentSheet(pid);const on=btn.classList.contains("on"),y=$("#mn").scrollTop,tb=k==="repost"?"reposts":k==="save"?"saves":"reactions",row={post_id:pid,user_id:me.id};if(tb==="reactions")row.kind=k;
+  const q=on?sb.from(tb).delete().match({post_id:pid,user_id:me.id}):tb==="reactions"?sb.from(tb).upsert(row,{onConflict:"post_id,user_id"}):sb.from(tb).insert(row);
+  const{error}=await q;if(error)return T(ERR(error));await show(tab);$("#mn").scrollTop=y}
+
+/* ---------- Eventos ---------- */
+document.addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;const d=t.dataset;
+  if(d.m){mode=d.m;return authView()}if(t.id==="go")return doAuth();if(t.id==="fg")return forgot();if(t.id==="nr")return newPass();if(t.id==="cs")return doSetup();
+  if(t.id==="lo"){closeSheet();return sb.auth.signOut()}
+  if(d.t!=null)return show(+d.t);if(t.id==="bc")return createSheet();if(t.id==="bm")return T("Los mensajes llegan en la Fase 2");
+  if(d.x)return closeSheet();if(d.c){cmode=d.c;return createSheet()}if(t.id==="pub")return publish();
+  if(t.id==="ep")return editSheet();if(t.id==="sv")return saveProfile();if(t.id==="st")return setSheet();
+  if(d.k)return upd({[d.k]:!me[d.k]});if(d.th)return upd({theme:d.th});if(t.id==="gg")return google();if(t.id==="rq")return reqSheet();
+  if(d.pt!=null){ptab=+d.pt;return show(2)}if(d.u)return profView(d.u);if(d.bk)return show(0);
+  if(d.un){const{data}=await sb.from("profiles").select("id").eq("username",d.un).maybeSingle();return data?profView(data.id):T("Usuario no encontrado")}
+  if(d.s){await show(0);$("#q").value=d.s;return search(d.s)}
+  if(d.f){const{error}=await(d.st?sb.from("follows").delete().match({follower:me.id,following:d.f}):sb.from("follows").insert({follower:me.id,following:d.f}));if(error)T(ERR(error));return profView(d.f)}
+  if(d.ra){await sb.rpc("respond_follow",{p_follower:d.ra,p_accept:!!d.ok});return reqSheet()}
+  if(t.id==="cs2"){const v=$("#ci").value.trim();if(!v)return;const{error}=await sb.from("comments").insert({post_id:d.p,author:me.id,body:v});return error?er(ERR(error)):commentSheet(d.p)}
+  if(d.dc){await sb.from("comments").delete().eq("id",d.dc);return commentSheet(d.p)}
+  if(d.r)return react(t)});
+sb.auth.onAuthStateChange((ev)=>{if(ev==="PASSWORD_RECOVERY")return recView();if(ev==="SIGNED_OUT"){me=null;return setTimeout(route,0)}if(!me&&ev!=="TOKEN_REFRESHED")setTimeout(route,0)});
+route();
+</script>
+</body>
+</html>
