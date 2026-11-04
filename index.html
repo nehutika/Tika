@@ -60,6 +60,14 @@ nav button[aria-current="true"] .i{fill:currentColor;fill-opacity:.15}
 .vg{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px}.vt{border:0;padding:0;aspect-ratio:9/16;background:#000;border-radius:10px;overflow:hidden}
 .seg.pt{grid-template-columns:repeat(4,1fr)}.seg.pt button{font-size:12px;padding:8px 2px}
 .acts{justify-content:space-between}.acts .on[data-r="dislike"],.acts .on[data-r="save"]{color:#2F6BDB}.acts .on[data-r="repost"]{color:#0E9F8C}
+html,body{overflow-x:hidden}.ib{position:relative}
+.dot{position:absolute;top:6px;right:7px;width:10px;height:10px;border-radius:50%;background:var(--acc);border:2px solid var(--card)}.dot[hidden]{display:none}
+nav{position:relative}nav button{transition:color .2s}
+#ni{position:absolute;left:0;top:0;width:33.3334%;height:100%;display:flex;justify-content:center;pointer-events:none;transition:transform .3s cubic-bezier(.2,.8,.2,1)}#ni:after{content:"";width:30px;height:3px;border-radius:0 0 3px 3px;background:var(--acc)}
+.seg.pt{position:relative;--i:0}.seg.pt:after{content:"";position:absolute;bottom:2px;left:16px;width:calc((100% - 32px)/4);height:3px;border-radius:3px;background:var(--acc);transform:translateX(calc(var(--i)*100%));transition:transform .3s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.seg button{transition:background .2s,color .2s,border-color .2s}
+@keyframes sr{from{transform:translateX(28px);opacity:0}}@keyframes sl{from{transform:translateX(-28px);opacity:0}}
+.nt{display:flex;gap:12px;align-items:center}.nt small{display:block;color:var(--mute)}.ng{margin:8px 0 0;font-size:13px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}.un{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--acc);margin-right:6px}
 </style>
 </head>
 <body>
@@ -96,8 +104,8 @@ async function doSetup(){const n=$("#sn").value.trim(),u=$("#su").value.trim(),b
 async function route(){const{data:{session}}=await sb.auth.getSession();if(!session){me=null;return authView()}
   const{data,error}=await sb.from("profiles").select("*").eq("id",session.user.id).maybeSingle();if(error)return T(ERR(error));
   if(!data){me=null;return setupView()}me=data;document.documentElement.dataset.theme=me.theme;shell();show(tab)}
-function shell(){$("#app").innerHTML=`<header><button class="ib pri" id="bc" aria-label="Crear">${ic("plus")}</button><h1>tika</h1><div class="hr"><button class="ib" id="bd" aria-label="Tickets">${ic("tk")}</button><button class="ib" id="bm" aria-label="Mensajes">${ic("mail")}</button><button class="ib" id="bn" aria-label="Notificaciones" hidden>${ic("bell")}</button><button class="ib" id="bs" aria-label="Ajustes" hidden>${ic("sl")}</button></div></header><main id="mn"></main><nav><button data-t="0">${ic("home")}Inicio</button><button data-t="1">${ic("vid")}Videos</button><button data-t="2">${ic("user")}Perfil</button></nav>`}
-async function show(n){tab=n;const pf=n===2;$("#bm").hidden=pf;$("#bn").hidden=!pf;$("#bs").hidden=!pf;document.querySelectorAll("nav button").forEach((b,i)=>b.setAttribute("aria-current",i===n));const m=$("#mn");m.className=n===1?"reels":"";m.innerHTML=cache[n]&&n!==1?cache[n]:'<div class="empty">Cargando…</div>';
+function shell(){$("#app").innerHTML=`<header><button class="ib pri" id="bc" aria-label="Crear">${ic("plus")}</button><h1>tika</h1><div class="hr"><button class="ib" id="bd" aria-label="Tickets">${ic("tk")}</button><button class="ib" id="bm" aria-label="Mensajes">${ic("mail")}</button><button class="ib" id="bn" aria-label="Notificaciones" hidden>${ic("bell")}<span class="dot" hidden></span></button><button class="ib" id="bs" aria-label="Ajustes" hidden>${ic("sl")}</button></div></header><main id="mn"></main><nav><span id="ni"></span><button data-t="0">${ic("home")}Inicio</button><button data-t="1">${ic("vid")}Videos</button><button data-t="2">${ic("user")}Perfil</button></nav>`}
+async function show(n){const dr=n-tab;tab=n;$("#ni").style.transform=`translateX(${n*100}%)`;bdot();const pf=n===2;$("#bm").hidden=pf;$("#bn").hidden=!pf;$("#bs").hidden=!pf;document.querySelectorAll("nav button").forEach((b,i)=>b.setAttribute("aria-current",i===n));const m=$("#mn");m.className=n===1?"reels":"";m.innerHTML=cache[n]&&n!==1?cache[n]:'<div class="empty">Cargando…</div>';if(dr)slide(m,dr);
   if(n===0)await feed();if(n===1)await reels();if(n===2)await prof()}
 
 /* ---------- Datos ---------- */
@@ -135,16 +143,24 @@ async function reels(){const l=await fetchPosts(q=>q.eq("kind","video"));if(tab!
   io&&io.disconnect();io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector("video");if(e.isIntersecting)v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})});else v.pause()}),{threshold:.6});m.querySelectorAll(".vid").forEach(e=>io.observe(e))}
 async function myList(){if(ptab<2)return fetchPosts(q=>q.eq("author",me.id).eq("kind",ptab?"video":"post"));const{data}=await sb.from(ptab===3?"saves":"reposts").select("post_id").eq("user_id",me.id),ids=(data||[]).map(x=>x.post_id);return ids.length?fetchPosts(q=>q.in("id",ids)):[]}
 async function prof(){const k=ptab,[st,l,rq]=await Promise.all([sb.from("profile_stats").select("*").eq("profile_id",me.id).maybeSingle(),myList(),sb.from("follows").select("follower",{count:"exact",head:true}).eq("following",me.id).eq("status","pending")]),n=rq.count||0;if(tab!==2||ptab!==k)return;
-  $("#mn").innerHTML=`${head(me,st.data||{})}<div class="pfb"><h2>${esc(me.display_name)}</h2><span class="u">@${esc(me.username)}${me.is_private?" · cuenta privada":""}</span><p>${fmt(me.bio)}</p><div><button class="btn ghost" id="ep">Editar perfil</button>${n?`<button class="btn" id="rq">Solicitudes (${n})</button>`:""}</div></div><div class="seg pt">${["Posts","Videos","Reposts","Guardados"].map((x,i)=>`<button data-pt="${i}" class="${i===ptab?"on":""}">${x}</button>`).join("")}</div><div id="pl">${pc[k]=plHtml(l,k)}</div>`;cache[2]=$("#mn").innerHTML}
+  $("#mn").innerHTML=`${head(me,st.data||{})}<div class="pfb"><h2>${esc(me.display_name)}</h2><span class="u">@${esc(me.username)}${me.is_private?" · cuenta privada":""}</span><p>${fmt(me.bio)}</p><div><button class="btn ghost" id="ep">Editar perfil</button>${n?`<button class="btn" id="rq">Solicitudes (${n})</button>`:""}</div></div><div class="seg pt" style="--i:${ptab}">${["Posts","Videos","Reposts","Guardados"].map((x,i)=>`<button data-pt="${i}" class="${i===ptab?"on":""}">${x}</button>`).join("")}</div><div id="pl">${pc[k]=plHtml(l,k)}</div>`;cache[2]=$("#mn").innerHTML}
 const plHtml=(l,k)=>k===1&&l&&l.length?(l.forEach(p=>vmap[p.id]=p),`<div class="vg">${l.map(p=>`<button class="vt" data-vp="${p.id}" aria-label="Ver video"><img src="${p.thumb||""}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover"></button>`).join("")}</div>`):`${k===3?'<p class="u" style="padding:0 16px">Solo tú ves tus guardados.</p>':""}${list(l,k===1?"<b>Todavía no hay videos</b>Toca + y elige Video.":"<b>Nada por aquí</b>")}`;
 async function loadPl(){const k=ptab,l=await myList();pc[k]=plHtml(l,k);if(ptab===k&&tab===2&&$("#pl")){$("#pl").innerHTML=pc[k];cache[2]=$("#mn").innerHTML}}
-function setPt(n){ptab=n;document.querySelectorAll("[data-pt]").forEach(b=>b.classList.toggle("on",+b.dataset.pt===n));$("#pl").innerHTML=pc[n]||'<div class="empty">Cargando…</div>';return loadPl()}
+function setPt(n){const o=ptab;ptab=n;$(".seg.pt").style.setProperty("--i",n);document.querySelectorAll("[data-pt]").forEach(b=>b.classList.toggle("on",+b.dataset.pt===n));$("#pl").innerHTML=pc[n]||'<div class="empty">Cargando…</div>';slide($("#pl"),n-o);return loadPl()}
 async function profView(id){if(id===me.id)return show(2);const m=$("#mn");m.className="";m.innerHTML='<div class="empty">Cargando…</div>';document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current","false"));
   const[pr,st,fl,l]=await Promise.all([sb.from("profiles").select("*").eq("id",id).maybeSingle(),sb.from("profile_stats").select("*").eq("profile_id",id).maybeSingle(),sb.from("follows").select("status").eq("follower",me.id).eq("following",id).maybeSingle(),fetchPosts(q=>q.eq("author",id))]);
   const u=pr.data;if(!u){m.innerHTML='<div class="empty"><b>Perfil no encontrado</b></div>';return}const f=fl.data&&fl.data.status,lab=f==="accepted"?"Siguiendo":f==="pending"?"Solicitud enviada":u.is_private?"Solicitar seguir":"Seguir";
   m.innerHTML=`${head(u,st.data||{})}<div class="pfb"><h2>${esc(u.display_name)}</h2><span class="u">@${esc(u.username)}${u.is_private?" · cuenta privada":""}</span><p>${fmt(u.bio)}</p><div><button class="btn${f?" ghost":""}" data-f="${id}" data-pv="${u.is_private?1:0}" data-st="${f||""}">${lab}</button><button class="btn ghost" data-bk="1">Volver</button></div></div>${list(l,u.is_private&&f!=="accepted"?"<b>Cuenta privada</b>Sigue a esta persona para ver sus publicaciones.":"<b>Sin publicaciones</b>")}`}
 async function reqSheet(ti){const{data}=await sb.from("follows").select("follower").eq("following",me.id).eq("status","pending");const pm=await profMap((data||[]).map(r=>r.follower));(data||[]).forEach(r=>r.profiles=pm[r.follower]||{});
   sheet(`${hd(ti||"Solicitudes")}${(data||[]).map(r=>`<div class="srow"><span><b>${esc(r.profiles.display_name)}</b> <span class="u">@${esc(r.profiles.username)}</span></span><span><button class="btn" data-ra="${r.follower}" data-ok="1">Aceptar</button> <button class="btn ghost" data-ra="${r.follower}">Rechazar</button></span></div>`).join("")||`<p class="u">${ti?"Sin novedades por ahora. Los me gusta, comentarios y tickets llegan pronto.":"No hay solicitudes."}</p>`}`)}
+const NG=[["like","Me gusta"],["comment","Comentarios"],["follow","Seguidores"],["ticket","Tickets"]],NT={like:"le dio me gusta a tu publicación",comment:"comentó tu publicación",follow:"empezó a seguirte",follow_request:"quiere seguirte",ticket:"te donó un ticket"};
+async function bdot(){if(!me)return;const{count}=await sb.from("notifications").select("id",{count:"exact",head:true}).is("read_at",null),d=$("#bn .dot");if(d)d.hidden=!count}
+async function notSheet(){const{data,error}=await sb.from("notifications").select("id,actor_id,kind,post_id,tier,created_at,read_at").order("created_at",{ascending:false}).limit(80);if(error)return T(ERR(error));
+  const seen=new Set(),L=(data||[]).filter(n=>{if(n.kind==="comment"||n.kind==="ticket")return true;const k=n.kind+n.actor_id+n.post_id;if(seen.has(k))return false;seen.add(k);return true});
+  const pm=await profMap(L.map(n=>n.actor_id).filter(Boolean)),grp=g=>L.filter(n=>g==="follow"?n.kind==="follow"||n.kind==="follow_request":n.kind===g);
+  const row=n=>{const u=(n.actor_id&&pm[n.actor_id])||{display_name:"Alguien"};return `<div class="nt">${ava(u)}<span style="flex:1">${n.read_at?"":'<i class="un"></i>'}<b>${esc(u.display_name)}</b> ${NT[n.kind]||""}${n.kind==="ticket"&&n.tier?" "+esc(n.tier):""}<small>${rel(n.created_at)}</small></span>${n.kind==="follow_request"?'<button class="btn ghost" id="rq">Ver</button>':""}</div>`};
+  sheet(`${hd("Notificaciones")}${NG.map(([g,t])=>{const a=grp(g);return a.length?`<h3 class="ng">${t}</h3>${a.map(row).join("")}`:""}).join("")||'<p class="u">Sin novedades por ahora.</p>'}`);
+  sb.rpc("mark_notifications_read").then(()=>bdot())}
 async function commentSheet(pid){const{data}=await sb.from("comments").select("id,author,body,created_at").eq("post_id",pid).order("created_at");const pm=await profMap((data||[]).map(c=>c.author));(data||[]).forEach(c=>c.profiles=pm[c.author]||{});
   sheet(`${hd("Comentarios")}${(data||[]).map(c=>`<div class="srow"><span><b>${esc(c.profiles.display_name)}</b> ${esc(c.body)}<small>${rel(c.created_at)}</small></span>${c.author===me.id?`<button class="lnk" data-dc="${c.id}" data-p="${pid}">Borrar</button>`:""}</div>`).join("")||'<p class="u">Sé el primero en comentar.</p>'}<div class="srow"><input id="ci" maxlength="300" placeholder="Escribe un comentario"><button class="btn" id="cs2" data-p="${pid}">Enviar</button></div><p class="er" id="er"></p>`)}
 async function google(){const{error}=await sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:redir()}});if(error)er(/not enabled|Unsupported/i.test(error.message)?"El ingreso con Google todavía no está activado.":ERR(error))}
@@ -171,7 +187,7 @@ async function saveProfile(){const f=$("#ea").files[0];let avatar=me.avatar_path
   const{error}=await sb.from("profiles").update({display_name:$("#en").value.trim()||me.display_name,username:$("#eu").value.trim(),bio:$("#eb").value.trim(),avatar_path:avatar}).eq("id",me.id);if(error)throw error;
   me=(await sb.from("profiles").select("*").eq("id",me.id).single()).data;closeSheet();cache={};pc={};show(2);T("Perfil actualizado")}catch(e){er(ERR(e))}}
 const tg=(k,t,d)=>`<div class="srow"><span><b>${t}</b><small>${d}</small></span><button class="sw ${me[k]?"on":""}" role="switch" aria-checked="${!!me[k]}" aria-label="${t}" data-k="${k}"></button></div>`;
-const setSheet=()=>sheet(`${hd("Ajustes")}${tg("is_private","Cuenta privada","Quien quiera seguirte tendrá que enviar una solicitud.")}${tg("anon_tickets","Tickets anónimos","Quien reciba tu ticket no verá tu nombre.")}<div class="seg"><button data-th="light" class="${me.theme==="light"?"on":""}">Claro</button><button data-th="dark" class="${me.theme==="dark"?"on":""}">Oscuro</button></div><button class="btn ghost" id="lo">Cerrar sesión</button><small class="u">tika · versión 6</small>`);
+const setSheet=()=>sheet(`${hd("Ajustes")}${tg("is_private","Cuenta privada","Quien quiera seguirte tendrá que enviar una solicitud.")}${tg("anon_tickets","Tickets anónimos","Quien reciba tu ticket no verá tu nombre.")}<div class="seg"><button data-th="light" class="${me.theme==="light"?"on":""}">Claro</button><button data-th="dark" class="${me.theme==="dark"?"on":""}">Oscuro</button></div><button class="btn ghost" id="lo">Cerrar sesión</button><small class="u">tika · versión 7</small>`);
 async function upd(patch){const{error}=await sb.from("profiles").update(patch).eq("id",me.id);if(error)return T(ERR(error));Object.assign(me,patch);document.documentElement.dataset.theme=me.theme;setSheet()}
 async function react(btn){const pid=btn.dataset.p,k=btn.dataset.r;if(k==="comment")return commentSheet(pid);
   const on=btn.classList.contains("on"),bs=[...document.querySelectorAll(`[data-p="${pid}"][data-r]`)],snap=bs.map(b=>[b,b.className,b.innerHTML]);
@@ -185,10 +201,14 @@ async function react(btn){const pid=btn.dataset.p,k=btn.dataset.r;if(k==="commen
   const{error}=await q;if(error){snap.forEach(([b,c,h])=>{b.className=c;b.innerHTML=h});return T(ERR(error))}
   if(((k==="save"&&ptab===3)||(k==="repost"&&ptab===2))&&tab===2&&on&&$("#pl"))return loadPl();cache[tab]=$("#mn").innerHTML}
 
-/* ---------- Deslizar entre pestañas del perfil ---------- */
+/* ---------- Deslizar entre páginas y pestañas ---------- */
+function slide(el,d){if(!el||!d)return;el.style.animation="none";void el.offsetWidth;el.style.animation=`${d>0?"sr":"sl"} .28s cubic-bezier(.2,.8,.2,1)`}
+function swipe(d){if($("#sh"))return;
+  if(tab===2){if(!$("#pl"))return;if(d<0&&ptab===0)return show(1);const n=ptab+d;if(n>=0&&n<=3)setPt(n);return}
+  if(tab===0&&d>0)return show(1);if(tab===1){if(d<0)return show(0);ptab=0;return show(2)}}
 let tx=0,ty=0,sw=false;
-document.addEventListener("touchstart",e=>{const t=e.touches[0];tx=t.clientX;ty=t.clientY;sw=tab===2&&!!$("#pl")&&!$("#sh")&&!e.target.closest("video,input,textarea")},{passive:true});
-document.addEventListener("touchmove",e=>{if(!sw)return;const t=e.touches[0],dx=t.clientX-tx,dy=t.clientY-ty;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5){sw=false;const n=ptab+(dx<0?1:-1);if(n>=0&&n<=3)setPt(n)}},{passive:true});
+document.addEventListener("touchstart",e=>{const t=e.touches[0];tx=t.clientX;ty=t.clientY;sw=!!me&&!$("#sh")&&!e.target.closest("video[controls],input,textarea")},{passive:true});
+document.addEventListener("touchmove",e=>{if(!sw)return;const t=e.touches[0],dx=t.clientX-tx,dy=t.clientY-ty;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5){sw=false;swipe(dx<0?1:-1)}},{passive:true});
 
 /* ---------- Eventos ---------- */
 document.addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;const d=t.dataset;
@@ -196,7 +216,7 @@ document.addEventListener("click",async e=>{const t=e.target.closest("button");i
   if(t.id==="lo"){closeSheet();return sb.auth.signOut()}
   if(d.t!=null)return show(+d.t);if(t.id==="bc")return createSheet();if(t.id==="bm")return T("Los mensajes llegan en la Fase 2");
   if(d.x)return closeSheet();if(d.c){cmode=d.c;return createSheet()}if(t.id==="pub")return publish();
-  if(t.id==="ep")return editSheet();if(t.id==="sv")return saveProfile();if(t.id==="st"||t.id==="bs")return setSheet();if(t.id==="bn")return reqSheet("Notificaciones");if(d.vp&&vmap[d.vp])return sheet(`${hd("Video")}${card(vmap[d.vp])}`);
+  if(t.id==="ep")return editSheet();if(t.id==="sv")return saveProfile();if(t.id==="st"||t.id==="bs")return setSheet();if(t.id==="bn")return notSheet();if(d.vp&&vmap[d.vp])return sheet(`${hd("Video")}${card(vmap[d.vp])}`);
   if(d.k)return upd({[d.k]:!me[d.k]});if(d.th)return upd({theme:d.th});if(t.id==="gg")return google();if(t.id==="rq")return reqSheet();
   if(d.pt!=null)return setPt(+d.pt);if(d.u)return profView(d.u);if(d.bk)return show(0);
   if(d.un){const{data}=await sb.from("profiles").select("id").eq("username",d.un).maybeSingle();return data?profView(data.id):T("Usuario no encontrado")}
@@ -208,7 +228,7 @@ document.addEventListener("click",async e=>{const t=e.target.closest("button");i
   if(d.dc){await sb.from("comments").delete().eq("id",d.dc);return commentSheet(d.p)}
   if(d.rt)return show(tab);if(t.id==="bd")return T("Los tickets llegan en la Fase 3");if(d.r)return react(t)});
 sb.auth.onAuthStateChange((ev)=>{if(ev==="PASSWORD_RECOVERY")return recView();if(ev==="SIGNED_OUT"){me=null;return setTimeout(route,0)}if(!me&&ev!=="TOKEN_REFRESHED")setTimeout(route,0)});
-route();
+route();setInterval(()=>{if(me&&!document.hidden)bdot()},60000);
 </script>
 </body>
 </html>
