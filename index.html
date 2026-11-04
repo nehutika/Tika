@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preconnect" href="https://dwtscjuueknglaxwkvqb.supabase.co" crossorigin><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <title>tika</title>
 <style>
 :root{color-scheme:light;--bg:#F6F3EC;--card:#FFFDF8;--ink:#23201B;--mute:#7C766A;--line:#E8E2D5;--acc:#FF4D6A;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);background:var(--bg)}
@@ -94,13 +95,16 @@ async function show(n){tab=n;document.querySelectorAll("nav button").forEach((b,
 /* ---------- Datos ---------- */
 async function profMap(ids){ids=[...new Set(ids)];if(!ids.length)return{};const{data}=await sb.from("profiles").select("id,username,display_name,avatar_path").in("id",ids);return Object.fromEntries((data||[]).map(x=>[x.id,x]))}
 async function fetchPosts(f){try{return await fetchPosts0(f)}catch(e){lastErr=ERR(e);return null}}
+const sig=new Map();
+async function signed(paths){const now=Date.now(),ok=p=>{const x=sig.get(p);return x&&x.exp>now+300000},need=paths.filter(p=>!ok(p));
+  if(need.length){const{data}=await sb.storage.from("media").createSignedUrls(need,3600);(data||[]).forEach(x=>x.signedUrl&&sig.set(x.path,{u:x.signedUrl,exp:now+3600000}))}
+  return p=>{const x=sig.get(p);return x&&x.u}}
 async function fetchPosts0(f){const{data,error}=await f(sb.from("posts").select("id,author,kind,body,media_path,thumb_path,created_at").order("created_at",{ascending:false}).limit(30));
-  if(error){lastErr=ERR(error);return null}const ids=data.map(p=>p.id);if(!ids.length)return[];const pm=await profMap(data.map(p=>p.author));
-  const[c,r,rp,sv]=await Promise.all([sb.from("post_counts").select("*").in("post_id",ids),sb.from("reactions").select("post_id,kind").in("post_id",ids),sb.from("reposts").select("post_id").in("post_id",ids),sb.from("saves").select("post_id").in("post_id",ids)]);const rps=new Set((rp.data||[]).map(x=>x.post_id)),svs=new Set((sv.data||[]).map(x=>x.post_id));
-  const cm=Object.fromEntries((c.data||[]).map(x=>[x.post_id,x])),rm=Object.fromEntries((r.data||[]).map(x=>[x.post_id,x.kind]));
-  const paths=[...new Set(data.flatMap(p=>[p.media_path,p.thumb_path]).filter(Boolean))];
-  const su=paths.length?(await sb.storage.from("media").createSignedUrls(paths,3600)).data||[]:[];const um=Object.fromEntries(su.map(x=>[x.path,x.signedUrl]));
-  return data.map(p=>({...p,profiles:pm[p.author]||{},c:cm[p.id]||{},mine:rm[p.id],rp:rps.has(p.id),sv:svs.has(p.id),url:um[p.media_path],thumb:um[p.thumb_path]}))}
+  if(error){lastErr=ERR(error);return null}const ids=data.map(p=>p.id);if(!ids.length)return[];
+  const paths=[...new Set(data.flatMap(p=>[p.media_path,p.thumb_path]).filter(Boolean))],mine=t=>sb.from(t).select(t==="reactions"?"post_id,kind":"post_id").eq("user_id",me.id).in("post_id",ids);
+  const[pm,c,r,rp,sv,url]=await Promise.all([profMap(data.map(p=>p.author)),sb.from("post_counts").select("*").in("post_id",ids),mine("reactions"),mine("reposts"),mine("saves"),signed(paths)]);
+  const rps=new Set((rp.data||[]).map(x=>x.post_id)),svs=new Set((sv.data||[]).map(x=>x.post_id)),cm=Object.fromEntries((c.data||[]).map(x=>[x.post_id,x])),rm=Object.fromEntries((r.data||[]).map(x=>[x.post_id,x.kind]));
+  return data.map(p=>({...p,profiles:pm[p.author]||{},c:cm[p.id]||{},mine:rm[p.id],rp:rps.has(p.id),sv:svs.has(p.id),url:url(p.media_path),thumb:url(p.thumb_path)}))}
 const avUrl=p=>sb.storage.from("avatars").getPublicUrl(p).data.publicUrl;
 const AM={like:["l","likes","Me gusta"],dislike:["d","dislikes","No me gusta"],comment:["c","comments","Comentarios"],repost:["r","reposts","Repostear"],save:["s",null,"Guardar"]};
 const act=(p,k)=>{const[i,n,a]=AM[k],on=k==="repost"?p.rp:k==="save"?p.sv:p.mine===k;return `<button data-r="${k}" data-p="${p.id}" class="${on?"on":""}" aria-label="${a}">${ic(i)}${n?Number(p.c[n]||0):""}</button>`};
@@ -111,21 +115,21 @@ const head=(u,s)=>`<div class="pfh">${u.avatar_path?`<img class="av big" src="${
 function card(p){const u=p.profiles||{},av=u.avatar_path?`<img class="av" src="${avUrl(u.avatar_path)}" alt="">`:`<span class="av">${esc((u.display_name||"?")[0])}</span>`;
   const md=!p.url?"":p.kind==="video"?`<video class="ph v" src="${p.url}" poster="${p.thumb||""}" controls playsinline preload="none"></video>`:`<img class="ph" src="${p.url}" alt="" loading="lazy">`;
   return `<article class="post"><div class="who"><button class="wb" data-u="${p.author}">${av}<b>${esc(u.display_name)}</b><span class="u">@${esc(u.username)}</span></button><small>${rel(p.created_at)}</small></div>${p.body?`<p>${fmt(p.body)}</p>`:""}${md}<div class="acts">${["like","dislike","comment","repost","save"].map(k=>act(p,k)).join("")}</div></article>`}
-async function feed(){const l=await fetchPosts(q=>q.eq("kind","post"));$("#mn").innerHTML=`<div class="sb"><input id="q" type="search" placeholder="Buscar personas, #hashtags y publicaciones"></div><div id="fd">${list(l,"<b>Todavía no hay publicaciones</b>Toca + para publicar la primera.")}</div>`;let h;$("#q").addEventListener("input",()=>{clearTimeout(h);h=setTimeout(()=>search($("#q").value.trim()),400)});cache[0]=$("#mn").innerHTML}
+async function feed(){const l=await fetchPosts(q=>q.eq("kind","post"));if(tab!==0)return;$("#mn").innerHTML=`<div class="sb"><input id="q" type="search" placeholder="Buscar personas, #hashtags y publicaciones"></div><div id="fd">${list(l,"<b>Todavía no hay publicaciones</b>Toca + para publicar la primera.")}</div>`;let h;$("#q").addEventListener("input",()=>{clearTimeout(h);h=setTimeout(()=>search($("#q").value.trim()),400)});cache[0]=$("#mn").innerHTML}
 async function search(t){if(!t)return feed();const k=t.replace(/[%,()*]/g,""),n=k.replace(/^[@#]/,"");
   const[pp,l]=await Promise.all([sb.from("profiles").select("id,username,display_name,avatar_path").or(`username.ilike.%${n}%,display_name.ilike.%${n}%`).limit(8),fetchPosts(q=>q.ilike("body",`%${k}%`))]);
   $("#fd").innerHTML=`${(pp.data||[]).map(u=>`<button class="row" data-u="${u.id}">${u.avatar_path?`<img class="av" src="${avUrl(u.avatar_path)}" alt="">`:`<span class="av">${esc(u.display_name[0])}</span>`}<span><b>${esc(u.display_name)}</b> <span class="u">@${esc(u.username)}</span></span></button>`).join("")}${list(l,"<b>Sin resultados</b>")}`}
-async function reels(){const l=await fetchPosts(q=>q.eq("kind","video"));const m=$("#mn");
+async function reels(){const l=await fetchPosts(q=>q.eq("kind","video"));if(tab!==1)return;const m=$("#mn");
   if(l===null){m.className="";m.innerHTML=errV();return}if(!l.length){m.className="";m.innerHTML='<div class="empty"><b>Todavía no hay videos</b>Toca + y elige Video para subir el primero.</div>';return}
   m.innerHTML=l.map(p=>`<section class="vid"><video src="${p.url}" poster="${p.thumb||""}" loop playsinline preload="metadata"></video><div class="vcap"><b>@${esc((p.profiles||{}).username)}</b><p>${esc(p.body)}</p></div><div class="vside">${["like","comment","repost","save"].map(k=>act(p,k)).join("")}</div></section>`).join("");
   io&&io.disconnect();io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector("video");if(e.isIntersecting)v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})});else v.pause()}),{threshold:.6});m.querySelectorAll(".vid").forEach(e=>io.observe(e))}
 async function myList(){if(!ptab)return fetchPosts(q=>q.eq("author",me.id));const{data}=await sb.from(ptab===1?"saves":"reposts").select("post_id").eq("user_id",me.id),ids=(data||[]).map(x=>x.post_id);return ids.length?fetchPosts(q=>q.in("id",ids)):[]}
-async function prof(){const[st,l,rq]=await Promise.all([sb.from("profile_stats").select("*").eq("profile_id",me.id).maybeSingle(),myList(),sb.from("follows").select("follower",{count:"exact",head:true}).eq("following",me.id).eq("status","pending")]),n=rq.count||0;
+async function prof(){const[st,l,rq]=await Promise.all([sb.from("profile_stats").select("*").eq("profile_id",me.id).maybeSingle(),myList(),sb.from("follows").select("follower",{count:"exact",head:true}).eq("following",me.id).eq("status","pending")]),n=rq.count||0;if(tab!==2)return;
   $("#mn").innerHTML=`${head(me,st.data||{})}<div class="pfb"><h2>${esc(me.display_name)}</h2><span class="u">@${esc(me.username)}${me.is_private?" · cuenta privada":""}</span><p>${fmt(me.bio)}</p><div><button class="btn ghost" id="ep">Editar perfil</button><button class="btn ghost" id="st">Ajustes</button>${n?`<button class="btn" id="rq">Solicitudes (${n})</button>`:""}</div></div><div class="seg pt">${["Publicaciones","Guardados","Reposts"].map((x,i)=>`<button data-pt="${i}" class="${i===ptab?"on":""}">${x}</button>`).join("")}</div>${ptab===1?'<p class="u" style="padding:0 16px">Solo tú ves tus guardados.</p>':""}${list(l,"<b>Nada por aquí</b>")}`;cache[2]=$("#mn").innerHTML}
 async function profView(id){if(id===me.id)return show(2);const m=$("#mn");m.className="";m.innerHTML='<div class="empty">Cargando…</div>';document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current","false"));
   const[pr,st,fl,l]=await Promise.all([sb.from("profiles").select("*").eq("id",id).maybeSingle(),sb.from("profile_stats").select("*").eq("profile_id",id).maybeSingle(),sb.from("follows").select("status").eq("follower",me.id).eq("following",id).maybeSingle(),fetchPosts(q=>q.eq("author",id))]);
   const u=pr.data;if(!u){m.innerHTML='<div class="empty"><b>Perfil no encontrado</b></div>';return}const f=fl.data&&fl.data.status,lab=f==="accepted"?"Siguiendo":f==="pending"?"Solicitud enviada":u.is_private?"Solicitar seguir":"Seguir";
-  m.innerHTML=`${head(u,st.data||{})}<div class="pfb"><h2>${esc(u.display_name)}</h2><span class="u">@${esc(u.username)}${u.is_private?" · cuenta privada":""}</span><p>${fmt(u.bio)}</p><div><button class="btn${f?" ghost":""}" data-f="${id}" data-st="${f||""}">${lab}</button><button class="btn ghost" data-bk="1">Volver</button></div></div>${list(l,u.is_private&&f!=="accepted"?"<b>Cuenta privada</b>Sigue a esta persona para ver sus publicaciones.":"<b>Sin publicaciones</b>")}`}
+  m.innerHTML=`${head(u,st.data||{})}<div class="pfb"><h2>${esc(u.display_name)}</h2><span class="u">@${esc(u.username)}${u.is_private?" · cuenta privada":""}</span><p>${fmt(u.bio)}</p><div><button class="btn${f?" ghost":""}" data-f="${id}" data-pv="${u.is_private?1:0}" data-st="${f||""}">${lab}</button><button class="btn ghost" data-bk="1">Volver</button></div></div>${list(l,u.is_private&&f!=="accepted"?"<b>Cuenta privada</b>Sigue a esta persona para ver sus publicaciones.":"<b>Sin publicaciones</b>")}`}
 async function reqSheet(){const{data}=await sb.from("follows").select("follower").eq("following",me.id).eq("status","pending");const pm=await profMap((data||[]).map(r=>r.follower));(data||[]).forEach(r=>r.profiles=pm[r.follower]||{});
   sheet(`${hd("Solicitudes")}${(data||[]).map(r=>`<div class="srow"><span><b>${esc(r.profiles.display_name)}</b> <span class="u">@${esc(r.profiles.username)}</span></span><span><button class="btn" data-ra="${r.follower}" data-ok="1">Aceptar</button> <button class="btn ghost" data-ra="${r.follower}">Rechazar</button></span></div>`).join("")||'<p class="u">No hay solicitudes.</p>'}`)}
 async function commentSheet(pid){const{data}=await sb.from("comments").select("id,author,body,created_at").eq("post_id",pid).order("created_at");const pm=await profMap((data||[]).map(c=>c.author));(data||[]).forEach(c=>c.profiles=pm[c.author]||{});
@@ -154,7 +158,7 @@ async function saveProfile(){const f=$("#ea").files[0];let avatar=me.avatar_path
   const{error}=await sb.from("profiles").update({display_name:$("#en").value.trim()||me.display_name,username:$("#eu").value.trim(),bio:$("#eb").value.trim(),avatar_path:avatar}).eq("id",me.id);if(error)throw error;
   me=(await sb.from("profiles").select("*").eq("id",me.id).single()).data;closeSheet();cache={};show(2);T("Perfil actualizado")}catch(e){er(ERR(e))}}
 const tg=(k,t,d)=>`<div class="srow"><span><b>${t}</b><small>${d}</small></span><button class="sw ${me[k]?"on":""}" role="switch" aria-checked="${!!me[k]}" aria-label="${t}" data-k="${k}"></button></div>`;
-const setSheet=()=>sheet(`${hd("Ajustes")}${tg("is_private","Cuenta privada","Quien quiera seguirte tendrá que enviar una solicitud.")}${tg("anon_tickets","Tickets anónimos","Quien reciba tu ticket no verá tu nombre.")}<div class="seg"><button data-th="light" class="${me.theme==="light"?"on":""}">Claro</button><button data-th="dark" class="${me.theme==="dark"?"on":""}">Oscuro</button></div><button class="btn ghost" id="lo">Cerrar sesión</button><small class="u">tika · versión 3</small>`);
+const setSheet=()=>sheet(`${hd("Ajustes")}${tg("is_private","Cuenta privada","Quien quiera seguirte tendrá que enviar una solicitud.")}${tg("anon_tickets","Tickets anónimos","Quien reciba tu ticket no verá tu nombre.")}<div class="seg"><button data-th="light" class="${me.theme==="light"?"on":""}">Claro</button><button data-th="dark" class="${me.theme==="dark"?"on":""}">Oscuro</button></div><button class="btn ghost" id="lo">Cerrar sesión</button><small class="u">tika · versión 4</small>`);
 async function upd(patch){const{error}=await sb.from("profiles").update(patch).eq("id",me.id);if(error)return T(ERR(error));Object.assign(me,patch);document.documentElement.dataset.theme=me.theme;setSheet()}
 async function react(btn){const pid=btn.dataset.p,k=btn.dataset.r;if(k==="comment")return commentSheet(pid);
   const on=btn.classList.contains("on"),bs=[...document.querySelectorAll(`[data-p="${pid}"][data-r]`)],snap=bs.map(b=>[b,b.className,b.innerHTML]);
@@ -179,7 +183,8 @@ document.addEventListener("click",async e=>{const t=e.target.closest("button");i
   if(d.pt!=null){ptab=+d.pt;delete cache[2];return show(2)}if(d.u)return profView(d.u);if(d.bk)return show(0);
   if(d.un){const{data}=await sb.from("profiles").select("id").eq("username",d.un).maybeSingle();return data?profView(data.id):T("Usuario no encontrado")}
   if(d.s){await show(0);$("#q").value=d.s;return search(d.s)}
-  if(d.f){const{error}=await(d.st?sb.from("follows").delete().match({follower:me.id,following:d.f}):sb.from("follows").insert({follower:me.id,following:d.f}));if(error)T(ERR(error));return profView(d.f)}
+  if(d.f){const on=!!d.st,pv=d.pv==="1";t.dataset.st=on?"":(pv?"pending":"accepted");t.textContent=on?(pv?"Solicitar seguir":"Seguir"):(pv?"Solicitud enviada":"Siguiendo");t.classList.toggle("ghost",!on);
+    const{error}=await(on?sb.from("follows").delete().match({follower:me.id,following:d.f}):sb.from("follows").insert({follower:me.id,following:d.f}));if(error){T(ERR(error));return profView(d.f)}return}
   if(d.ra){await sb.rpc("respond_follow",{p_follower:d.ra,p_accept:!!d.ok});return reqSheet()}
   if(t.id==="cs2"){const v=$("#ci").value.trim();if(!v)return;const{error}=await sb.from("comments").insert({post_id:d.p,author:me.id,body:v});return error?er(ERR(error)):commentSheet(d.p)}
   if(d.dc){await sb.from("comments").delete().eq("id",d.dc);return commentSheet(d.p)}
