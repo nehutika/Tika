@@ -94,10 +94,12 @@ a{color:var(--acc)}.rules p{margin:0 0 10px}.rules b{display:block}
 .skl{height:150px;margin:12px 0;border-radius:16px;background:linear-gradient(90deg,var(--line) 25%,var(--card) 50%,var(--line) 75%);background-size:200% 100%;animation:shm 1.3s linear infinite}
 @keyframes shm{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){.skl{animation:none}}
 #off{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);background:#3A3631;color:#fff;text-align:center;padding:6px;font-size:13px;font-weight:700;z-index:70;display:none}
+.boot{display:grid;place-items:center;height:60vh;font:800 36px system-ui,sans-serif;letter-spacing:-1px;color:var(--ink);opacity:.3}
 </style>
 </head>
 <body>
-<div id="app"></div><div id="toast" role="status"></div>
+<div id="app"><div class="boot">tika</div></div><noscript><p style="padding:24px">tika necesita JavaScript para funcionar.</p></noscript><div id="toast" role="status"></div>
+<script src="boot.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="app.js"></script>
 </body>
