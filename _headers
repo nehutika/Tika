@@ -3,7 +3,7 @@
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: geolocation=(), usb=(), bluetooth=()
+  Permissions-Policy: geolocation=(), usb=(), bluetooth=(), microphone=(self)
   Strict-Transport-Security: max-age=31536000
 
 /sw.js
