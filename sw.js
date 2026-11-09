@@ -1,8 +1,8 @@
 // tika · servicio en segundo plano: deja la app abrir sin conexión.
 // Los datos (publicaciones, mensajes, etc.) siempre vienen en vivo de Supabase.
 // Los archivos de la app van "primero internet": así las actualizaciones llegan solas.
-const V = "tika-v15";
-const SHELL = ["./", "index.html", "app.js", "boot.js", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
+const V = "tika-v16";
+const SHELL = ["./", "index.html", "app.js", "boot.js", "i18n.js", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 const CDN = ["cdn.jsdelivr.net", "fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", e => {
