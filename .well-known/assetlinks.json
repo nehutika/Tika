@@ -2,7 +2,7 @@
       "relation": ["delegate_permission/common.handle_all_urls"],
       "target": {
         "namespace": "android_app",
-        "package_name": "com.tikaaa.twa",
-        "sha256_cert_fingerprints": ["53:9C:11:DD:D5:17:73:6A:C7:18:98:A0:39:A4:F3:AC:7A:F5:CE:D9:E7:95:7B:13:CF:59:99:85:2B:E8:99:67"]
+        "package_name": "com.tikaaa.app",
+        "sha256_cert_fingerprints": ["86:C7:61:CC:7E:DB:A5:9B:8C:4E:AE:D1:E9:DC:58:42:8A:98:10:AB:F5:E4:80:98:6F:A3:17:EC:D4:AC:85:27"]
       }
     }]
