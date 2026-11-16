@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "com.tikaaa.app",
-        "sha256_cert_fingerprints": ["86:C7:61:CC:7E:DB:A5:9B:8C:4E:AE:D1:E9:DC:58:42:8A:98:10:AB:F5:E4:80:98:6F:A3:17:EC:D4:AC:85:27"]
+        "sha256_cert_fingerprints": ["86:C7:61:CC:7E:DB:A5:9B:8C:4E:AE:D1:E9:DC:58:42:8A:98:10:AB:F5:E4:80:98:6F:A3:17:EC:D4:AC:85:27","BA:74:39:33:BA:25:F4:93:AD:56:E4:97:CE:7E:BC:64:1F:BA:EA:18:CE:6E:C5:0A:74:A0:6B:9D:21:AA:8A:25"]
       }
     }]
