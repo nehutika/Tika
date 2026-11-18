@@ -24,6 +24,7 @@
     "Escribe tu email arriba.": "Enter your email above.",
     "Te enviamos un correo para cambiar la contraseña.": "We sent you an email to change your password.",
     "Mínimo 8 caracteres.": "Minimum 8 characters.", "Contraseña cambiada": "Password changed",
+    "El enlace venció o ya se usó. Pide uno nuevo con \"Olvidé mi contraseña\".": "The link expired or was already used. Request a new one with \"I forgot my password\".",
     "Completa todos los campos.": "Fill in all the fields.",
     // errores
     "Email o contraseña incorrectos.": "Wrong email or password.", "Ese email ya tiene una cuenta.": "That email already has an account.",
